@@ -148,7 +148,7 @@ htmlinsert = ["""
               ]
 import concurrent.futures
 
-executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+#executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
 @app.route("/deep", methods=['GET', 'POST'])
 def eval():
@@ -163,13 +163,13 @@ def eval():
         with open(os.path.join("images", hashlib.sha256(str(url).encode()).hexdigest(), "evaluation.json"), 'r') as f:
             output = json.load(f)
     else:
-        fut = executor.submit(process_image, imagefilepath)
-        #output = dict(process_image(url,filename))
-        output = dict(fut.result(timeout=60))
+        #fut = executor.submit(process_image, imagefilepath)
+        output = dict(process_image(url,filename))
+        #output = dict(fut.result(timeout=60))
         with open(os.path.join("images", hashlib.sha256(str(url).encode()).hexdigest(), "evaluation.json"), 'w') as f:
             json.dump(output, f)
 
-    threshold = 0.1 if request.args.get('threshold') is None else int(request.args.get('threshold'))
+    threshold = 0.1 if request.args.get('threshold') is None else float(request.args.get('threshold'))
 
     output = dict(filter(lambda x: x[1] > threshold, output.items()))
 
