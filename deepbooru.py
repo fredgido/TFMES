@@ -164,7 +164,7 @@ def eval():
             output = json.load(f)
     else:
         #fut = executor.submit(process_image, imagefilepath)
-        output = dict(process_image(url,filename))
+        output = dict(process_image(imagefilepath))
         #output = dict(fut.result(timeout=60))
         with open(os.path.join("images", hashlib.sha256(str(url).encode()).hexdigest(), "evaluation.json"), 'w') as f:
             json.dump(output, f)
