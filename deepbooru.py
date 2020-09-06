@@ -3,9 +3,10 @@
 #from typing import Any, Union
 #import six
 #import validators
-import tensorflow as tf
 from skimage.transform import AffineTransform
 from skimage import transform
+import tensorflow as tf
+
 import pprint
 import os
 import requests
@@ -18,6 +19,7 @@ from flask import render_template
 import json
 import copy
 import re
+
 
 if not os.path.isfile(os.path.join("model","model-resnet_custom_v3.h5")) or not os.path.isfile(os.path.join("model","tags.txt")):
     print("downloading model and tags")  # https://api.github.com/repos/KichangKim/DeepDanbooru/releases
