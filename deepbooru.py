@@ -23,7 +23,7 @@ import re
 
 if not os.path.isfile(os.path.join("model","model-resnet_custom_v3.h5")) or not os.path.isfile(os.path.join("model","tags.txt")):
     print("downloading model and tags")  # https://api.github.com/repos/KichangKim/DeepDanbooru/releases
-    with requests.get("https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20200101-sgd-e30/deepdanbooru-v3-20200101-sgd-e30.zip", stream=True, allow_redirects=True) as r:
+    with requests.get("https://github.com/KichangKim/DeepDanbooru/releases/download/v4-20200814-sgd-e30/deepdanbooru-v4-20200814-sgd-e30.zip", stream=True, allow_redirects=True) as r:
         with open("model.zip", 'wb') as zip:
             shutil.copyfileobj(r.raw, zip)
     with zipfile.ZipFile("model.zip", 'r') as zip_ref:
