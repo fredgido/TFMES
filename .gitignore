@@ -2,3 +2,4 @@
 .idea/
 images/
 model/
+__pycache__/
