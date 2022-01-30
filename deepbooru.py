@@ -1,5 +1,6 @@
 import hashlib
 import os
+from typing import Union
 
 import keras.backend
 import requests
@@ -15,8 +16,7 @@ model = tf.keras.models.load_model(os.path.join("model", "model-resnet_custom_v4
 imagenet_labels = open(os.path.join("model", "tags.txt")).read().splitlines()
 
 
-def image_to_tensor(image_path: str, width: int, height: int):
-    image_raw = tf.io.read_file(image_path)
+def image_to_tensor(image_raw: bytes, width: int, height: int):
     image = tf.io.decode_png(image_raw, channels=3)
     image = tf.image.resize(image, size=(height, width), method=tf.image.ResizeMethod.AREA, preserve_aspect_ratio=True)
     image = image.numpy()  # EagerTensor to np.array
@@ -43,8 +43,10 @@ def download_image(url: str, filename: str) -> str:
     return os.path.join("images", url_hash, filename)
 
 
-def process_images(image_paths: list[str], min_score: float = 0) -> list[list[tuple[str, float]]]:
-    images = [image_to_tensor(image_path, model.input_shape[1], model.input_shape[2]) for image_path in image_paths]
+def process_images(input_images: list[Union[str, bytes]], min_score: float = 0.1) -> list[list[tuple[str, float]]]:
+    if isinstance(input_images[0], str):
+        input_images = [tf.io.read_file(image_path) for image_path in input_images]
+    images = [image_to_tensor(image_path, model.input_shape[1], model.input_shape[2]) for image_path in input_images]
     images = [image.reshape((1, image.shape[0], image.shape[1], image.shape[2])) for image in images]
 
     if len(images) > 10:
@@ -68,19 +70,22 @@ def process_images(image_paths: list[str], min_score: float = 0) -> list[list[tu
 app = Flask(__name__)
 
 
-@app.route("/", methods=["GET"])
-@app.route("/evaluate", methods=["GET"])
+@app.route("/", methods=["GET", "POST"])
+@app.route("/evaluate", methods=["GET", "POST"])
 def evaluate():
-    if not (urls := request.args.get("url")):
+    if not (files := request.args.get("url")) and not (files := request.files.getlist("file")):
         return """
-            <form action="/evaluate" method="get">
+            <form action="/evaluate" method="post" enctype="multipart/form-data">
                 <input type="text" name="url" placeholder="image url">
-                <input type="number" name="min_score" min="0" max="1" step="0.01" value="0.1">
+                <input type="file" name="file">
+                <input type="number" name="min_score" min="0" max="1" step="0.1" value="0.1">
                 <input type="submit" value="Submit">
             </form>
             """
     evaluation = process_images(
-        [download_image(url, url.split("/")[-1]) for url in urls.split(",")],
+        [download_image(url, url.split("/")[-1]) for url in files.split(",")]
+        if isinstance(files[0], str)
+        else [file.stream.seek(0) or file.stream.read() for file in files],
         float(request.args.get("min_score", 0)),
     )
     return jsonify(evaluation if len(evaluation) > 1 else evaluation[0])
