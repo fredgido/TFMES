@@ -37,4 +37,5 @@ CMD gunicorn deepbooru:app \
     --max-requests 500  \
     --max-requests-jitter 100 \
     --keep-alive ${GUNICORN_TIMEOUT:-60} \
+    ${GUNICORN_EXTRA_ARGS} \
     --log-level debug
