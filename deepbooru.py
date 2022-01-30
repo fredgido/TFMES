@@ -73,7 +73,7 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "POST"])
 @app.route("/evaluate", methods=["GET", "POST"])
 def evaluate():
-    if not (files := request.args.get("url")) and not (files := request.files.getlist("file")):
+    if not (urls := request.values.get("url")) and not (files := request.files.getlist("file")):
         return """
             <form action="/evaluate" method="post" enctype="multipart/form-data">
                 <input type="text" name="url" placeholder="image url">
@@ -83,8 +83,8 @@ def evaluate():
             </form>
             """
     evaluation = process_images(
-        [download_image(url, url.split("/")[-1]) for url in files.split(",")]
-        if isinstance(files[0], str)
+        [download_image(url, url.split("/")[-1]) for url in urls.split(",")]
+        if urls
         else [file.stream.seek(0) or file.stream.read() for file in files],
         float(request.args.get("min_score", 0)),
     )
