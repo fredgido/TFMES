@@ -13,7 +13,7 @@ RUN mkdir model
 
 WORKDIR /project/model
 
-RUN wget -O model.zip https://github.com/KichangKim/DeepDanbooru/releases/download/v4-20200814-sgd-e30/deepdanbooru-v4-20200814-sgd-e30.zip && unzip model.zip && rm model.zip
+RUN wget -O model.zip https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20211112-sgd-e28/deepdanbooru-v3-20211112-sgd-e28.zip && unzip model.zip && rm model.zip
 
 WORKDIR /project
 
