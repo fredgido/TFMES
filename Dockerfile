@@ -29,14 +29,13 @@ WORKDIR /project
 CMD gunicorn deepbooru:app \
     --name web \
     --bind 0.0.0.0:${PORT:-8000} \
-    --workers ${GUNICORN_WORKERS:-2} \
-    --threads ${GUNICORN_THREADS:-2}  \
+    --workers ${GUNICORN_WORKERS:-1} \
+    --threads ${GUNICORN_THREADS:-4}  \
     --timeout ${GUNICORN_TIMEOUT:-60} \
     --capture-output \
     --enable-stdio-inheritance \
-    --max-requests 500  \
+    --max-requests 1000  \
     --max-requests-jitter 100 \
     --keep-alive ${GUNICORN_TIMEOUT:-60} \
-    --preload \
     ${GUNICORN_EXTRA_ARGS} \
     --log-level debug

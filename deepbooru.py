@@ -71,7 +71,7 @@ def process_images(
     outputs = []
     for prediction in predictions:
         tag_score = sorted(zip(prediction, range(0, len(prediction))), key=lambda x: x[0], reverse=True)
-        output = [(model_labels[tag], score) for score, tag in tag_score if score > min_score]
+        output = [(model_labels[tag], float(score)) for score, tag in tag_score if score > min_score]
         # pprint.pprint(dict(output)['realistic'])
         # pprint.pprint(dict(output)['photorealistic'])
         # pprint.pprint(output[:50])
