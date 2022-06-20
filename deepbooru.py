@@ -98,7 +98,7 @@ def evaluate():
         [download_image(url, url.split("/")[-1]) for url in urls.split(",")]
         if urls
         else [file.stream.seek(0) or file.stream.read() for file in files],  # noqa:F823
-        float(request.args.get("min_score", 0)),
+        float(request.args.get("min_score", request.form.get("min_score", 0.1))),
     )
     return jsonify(evaluation if len(evaluation) > 1 else evaluation[0])
 
