@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+from base64 import b64encode
 from pathlib import Path
 from typing import Union, cast
 
@@ -80,16 +81,40 @@ def evaluate():
                 <input type="text" name="url" placeholder="image url">
                 <input type="file" name="file">
                 <input type="number" name="min_score" min="0" max="1" step="0.1" value="0.1">
+                <input type="hidden" name="is_html" value="True">
                 <input type="submit" value="Submit">
             </form>
             """
-    evaluation = process_images(
-        [download_image(url, url.split("/")[-1]) for url in urls.split(",")]
-        if urls
-        else [file.stream.seek(0) or file.stream.read() for file in files],  # noqa:F823
-        float(request.args.get("min_score", request.form.get("min_score", 0.1))),
-    )
-    return jsonify(evaluation if len(evaluation) > 1 else evaluation[0])
+    images = [download_image(url) for url in urls.split(",")] if urls else [file.stream.read() for file in files]
+    evaluation = process_images(images, float(request.args.get("min_score") or request.form.get("min_score") or 0.1))
+    if not (request.form.get("is_html") or request.args.get("is_html")):
+        return jsonify(evaluation if len(evaluation) > 1 else evaluation[0])
+    else:
+        return Template(
+            """
+<a href="/">&lt; Back</a>
+{% for img , prediction in predictions %}
+<div style="flex-direction: row; max-height: 100vh; display: flex;">
+ <div style="justify-content: center; align-items: center; flex: 1 1 0%; display: flex;">
+  <img style="max-width: 100%; max-height: 100%; height: auto;" src="data:image/jpg;base64,{{ img | safe }}">
+</div>
+<div style="overflow: scroll;">
+ <table style=" border-collapse: collapse; line-height: 1rem;">
+ {% for tag, score in prediction %}
+  <tr>
+   <td>
+    <a href="https://danbooru.donmai.us/wiki_pages/{{ tag | urlencode }}">?</a>
+    <a href="https://danbooru.donmai.us/posts?tags={{ tag | urlencode }}">{{tag | replace("_", " ")}}</a>
+   </td>
+   <td >{{ "{:.0f}%".format(100 * score) }}</td>
+  </tr>
+  {% endfor %}
+ </table>
+ <textarea rows="4">{{ " ".join(prediction|map(attribute=0)) }}</textarea>
+</div>
+{% endfor %}
+"""
+        ).render(predictions=zip([b64encode(img).decode() for img in images], evaluation))
 
 
 if __name__ == "__main__":
