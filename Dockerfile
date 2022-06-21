@@ -19,12 +19,14 @@ WORKDIR /project
 
 COPY requirements.txt requirements.txt
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 
 WORKDIR /project
+
+EXPOSE ${PORT:-8000}/tcp
 
 CMD gunicorn deepbooru:app \
     --name web \
