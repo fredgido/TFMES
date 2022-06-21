@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import hashlib
 import os
 from pathlib import Path
 from typing import Union, cast
@@ -8,6 +7,7 @@ import keras.backend
 import requests
 import tensorflow as tf
 from flask import Flask, request, jsonify
+from jinja2 import Template
 from skimage import transform
 from skimage.transform import AffineTransform
 
@@ -34,27 +34,16 @@ def image_to_tensor(image_raw: bytes, width: int, height: int):
     return image
 
 
-def download_image(url: str, filename: str) -> str:
-    url_hash = hashlib.sha256(str(url).encode()).hexdigest()
-    file_path = Path("images") / url_hash / filename
-
-    if file_path.is_file():
-        return str(file_path)
-
-    file_path.parent.mkdir(exist_ok=True, parents=True)
-
+def download_image(url: str) -> bytes:
     r = requests.get(url, timeout=5, headers={"referer": "https://www.pixiv.net/"} if "pximg" in url else {})
     if r.status_code != 200:
         raise Exception(f"Error {r.status_code} on url {url}: {r.text}")
+    return r.content
 
-    with file_path.open("wb") as f:
-        f.write(r.content)
-
-    return str(file_path)
 
 
 def process_images(
-    input_images: Union[list[str], list[bytes]], min_score: float = 0.1
+        input_images: Union[list[str], list[bytes]], min_score: float = 0.1
 ) -> list[list[tuple[str, float]]]:
     if isinstance(input_images[0], str):
         input_images = [tf.io.read_file(image_path) for image_path in input_images]
