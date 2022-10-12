@@ -69,6 +69,7 @@ def process_images(
 
 
 app = Flask(__name__)
+app.config["JSON_SORT_KEYS"] = False
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -92,7 +93,9 @@ def evaluate():
         if not is_danbooru_compatible:
             return jsonify(evaluation if len(evaluation) > 1 else evaluation[0])
         else:
-            return jsonify({file.name: dict(result) for file, result in zip(files, evaluation)})
+            return jsonify(
+                [{"filename": file.filename, "tags": dict(result)} for file, result in zip(files, evaluation)]
+            )
     else:
         return Template(
             """
