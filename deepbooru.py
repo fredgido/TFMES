@@ -20,6 +20,7 @@ if n_threads := os.getenv("TF_INTRA_THREADS"):
 model = tf.keras.models.load_model(list(Path("model").glob("*.h5"))[0])
 with (Path("model") / "tags.txt").open() as model_file:
     model_labels = model_file.read().splitlines()
+    model_labels = [label[0:8] if label.startswith("rating:") else label for label in model_labels]
 
 
 def image_to_tensor(image_raw: bytes, width: int, height: int):
