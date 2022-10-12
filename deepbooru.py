@@ -42,9 +42,8 @@ def download_image(url: str) -> bytes:
     return r.content
 
 
-
 def process_images(
-        input_images: Union[list[str], list[bytes]], min_score: float = 0.1
+    input_images: Union[list[str], list[bytes]], min_score: float = 0.1
 ) -> list[list[tuple[str, float]]]:
     if isinstance(input_images[0], str):
         input_images = [tf.io.read_file(image_path) for image_path in input_images]
@@ -86,9 +85,14 @@ def evaluate():
             </form>
             """
     images = [download_image(url) for url in urls.split(",")] if urls else [file.stream.read() for file in files]
-    evaluation = process_images(images, float(request.args.get("min_score") or request.form.get("min_score") or 0.1))
+    is_danbooru_compatible = request.args.get("threshold") or request.form.get("threshold")
+    min_score = is_danbooru_compatible or request.args.get("min_score") or request.form.get("min_score")
+    evaluation = process_images(images, float(min_score or 0.1))
     if not (request.form.get("is_html") or request.args.get("is_html")):
-        return jsonify(evaluation if len(evaluation) > 1 else evaluation[0])
+        if not is_danbooru_compatible:
+            return jsonify(evaluation if len(evaluation) > 1 else evaluation[0])
+        else:
+            return jsonify({file.name: dict(result) for file, result in zip(files, evaluation)})
     else:
         return Template(
             """
