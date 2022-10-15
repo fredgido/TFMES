@@ -21,6 +21,14 @@ model = tf.keras.models.load_model(list(Path("model").glob("*.h5"))[0])
 with (Path("model") / "tags.txt").open() as model_file:
     model_labels = model_file.read().splitlines()
     model_labels = [label[0:8] if label.startswith("rating:") else label for label in model_labels]
+    deprecated_tag_converted = {
+        "(9)": "circled_9",
+        "(o)_(o)": "solid_circle_pupils",
+        "/\\/\\/\\": "^^^",
+        "alice_(wonderland)_(cosplay)": "alice_(alice_in_wonderland)_(cosplay)",
+        "shimakaze_(kantai_collection)_(cosplay)": "shimakaze_(kancolle)_(cosplay)",
+    }
+    model_labels = [deprecated_tag_converted.get(label, label) for label in model_labels]
 
 
 def image_to_tensor(image_raw: bytes, width: int, height: int):
